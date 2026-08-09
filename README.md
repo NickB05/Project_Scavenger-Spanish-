@@ -1,4 +1,4 @@
-# 🛠️ Project Scavenger
+# 🛠️ Proyecto Scavenger
 
 Incorpora el **sistema moderno de objetos construibles de Zombies** a la experiencia clásica de Black Ops II en **Plutonium**.
 
