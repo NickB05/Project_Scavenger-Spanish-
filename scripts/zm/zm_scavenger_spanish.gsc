@@ -1,6 +1,6 @@
 /*
 "Proyecto Scavenger" - TranZit / Die Rise / Buried
-v1.3
+v1.4
 
 Creado por: NickB_05
 
@@ -22,9 +22,9 @@ para la llave del ascensor... ¡disfruta del script!
 AVISO: Si vas a utilizar este script para otro proyecto, por favor
 da crédito a mi trabajo, ya que tardé al menos un mes en terminarlo.
 
-v1.1 Correcciones realizadas por: SyntaXError
-v1.2 Correcciones realizadas por: NickB_05
-v1.3 Correcciones para multijugador realizadas por: NickB_05
+Correcciones de la v1.1 realizadas por: SyntaXError
+Correcciones de la v1.2 realizadas por: NickB_05
+Correcciones v1.3 y v1.4 para multijugador realizadas por: NickB_05
 */
 
 #include maps\mp\zombies\_zm_buildables;
@@ -298,6 +298,8 @@ mc_build_radius_sq( name )
 mc_setup_custom_prompts()
 {
     level waittill( "buildables_setup" );
+	
+    level.mc_buildables_ready = true;
 
     foreach ( stub in level.buildable_stubs )
     {
@@ -460,7 +462,8 @@ mc_get_deliverable_pieces( zone )
 player_collect_and_build()
 {
     self endon( "disconnect" );
-    level waittill( "buildables_setup" );
+    if ( !isdefined( level.mc_buildables_ready ) )
+        level waittill( "buildables_setup" );
 
     self thread mc_collect_loop();
     self thread mc_deliver_loop();
