@@ -40,7 +40,7 @@ Project Scavenger sustituye la mecánica original de transporte de piezas en map
 
 ---
 
-# 📖 Tutorial (Inglés)
+# 📖 Tutorial
 
 > **Paso 0:** Vende tu alma. *(Opcional)*
 
