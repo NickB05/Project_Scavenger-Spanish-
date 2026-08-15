@@ -1,4 +1,4 @@
-# 🛠️ Proyecto Scavenger
+# 🛠️ Proyecto Scavenger | ACTUALIZACION v1.5 DE LEADERBOARD!
 
 Incorpora el **sistema moderno de objetos construibles de Zombies** a la experiencia clásica de Black Ops II en **Plutonium**.
 
@@ -6,6 +6,9 @@ Project Scavenger sustituye la mecánica original de transporte de piezas en map
 
 
 <img width="654" height="360" alt="buildable_demo" src="https://github.com/user-attachments/assets/71db7243-17b8-45d3-a192-d0b31532fa11" />
+<img width="739" height="420" alt="image" src="https://github.com/user-attachments/assets/8b55c86c-9d09-4882-816b-d9528ec767b7" />
+<img width="583" height="405" alt="image" src="https://github.com/user-attachments/assets/0f9ffa48-adfc-4271-a422-7a21b6667364" />
+
 
 > **Mapas compatibles:** Tranzit, Die Rise y Buried.
 
