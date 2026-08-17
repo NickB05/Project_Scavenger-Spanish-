@@ -22,17 +22,18 @@ Project Scavenger sustituye la mecánica original de transporte de piezas en map
 *  Torreta
 *  Trampa eléctrica
 *  Jet Gun
+*  Llave del Elevador
 *  Trample Steam
 *  Decapitadora (Head Chopper)
 *  Resonador
 *  Mesas de tarjetas Nav (Nav-Card)
 *  Guillotina del final de Richtofen
 *  Horca del final de Maxis
+*  Todas las piezas del Autobus
 
 ---
 
 ## Objetos construibles que conservan sus mecánicas originales
-*  Llave del ascensor
 *  Tizas
 *  Alcohol
 *  Caramelos
