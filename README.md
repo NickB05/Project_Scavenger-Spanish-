@@ -1,4 +1,4 @@
-# 🛠️ Proyecto Scavenger | ACTUALIZACION v1.6 DE LEADERBOARD!
+# 🛠️ Proyecto Scavenger | ACTUALIZACION DE EXPANSION v1.7 DE LEADERBOARD!
 
 Incorpora el **sistema moderno de objetos construibles de Zombies** a la experiencia clásica de Black Ops II en **Plutonium**.
 
