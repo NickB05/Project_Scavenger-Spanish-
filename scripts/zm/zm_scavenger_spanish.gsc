@@ -26,34 +26,34 @@ Correcciones de la v1.1 realizadas por: SyntaXError
 Correcciones de la v1.2 realizadas por: NickB_05
 Correcciones v1.3 y v1.4 para multijugador realizadas por: NickB_05
 Actualizacion v1.5, y v1.6 del Leaderboard realizadas por: NickB_05
-Implementacion v1.7 de la Llave del Elevador (Die Rise) realizada por: NickB_05
+Actualizacion de expansion v1.7 del Leaderbord realizada por: NickB_05
 */
 
 #include maps\mp\zombies\_zm_buildables;
 #include maps\mp\zombies\_zm_weapons;
 #include maps\mp\zombies\_zm_utility;
 #include maps\mp\gametypes_zm\_hud_util;
-#include maps\mp\_utility;
+#include mp\_utility;
 
-#define MC_BUILD_RADIUS_SQ 7000 // distancia horizontal (X/Y) para la mayoría de las áreas edificables
-#define MC_BUILD_RADIUS_SQ_TIGHT 2500 // Escotilla/escalera/arado: colocados más juntos para evitar pisar la zona de reparación de la ventana u otros elementos cercanos
-#define MC_HEIGHT_TOLERANCE 82 // Diferencia de altura máxima permitida (Z): filtra los distintos niveles (generalmente separados por 128 unidades o más) sin interferir con la construcción estándar
-#define MC_DEFAULT_BUILD_TIME 3000 // ms, se utiliza si el stub no trae su propio tiempo de uso
+#define MC_BUILD_RADIUS_SQ 7000 // horizontal distance (X/Y) for most buildable areas
+#define MC_BUILD_RADIUS_SQ_TIGHT 2500 // Hatch/ladder/plough: placed closer together to avoid stepping into the window repair zone or other nearby elements
+#define MC_HEIGHT_TOLERANCE 82 // Maximum allowed height difference (Z): filters out different levels (usually separated by 128 units or more) without interfering with standard building
+#define MC_DEFAULT_BUILD_TIME 3000 // ms, used if the stub does not provide its own usage time
 
-#define MC_TAB_SQUARE_X 91  // posicion horizontal (desde la esquina sup. izq., escala 640)
-#define MC_TAB_SQUARE_Y 97 // posicion vertical base: sin piezas, o buildable ya construido
-#define MC_TAB_SQUARE_Y_ACTIVE 87 // posicion vertical cuando ese slot tiene >=1 pieza y no esta construido
-#define MC_TAB_SQUARE_SIZE 29 // ancho/alto de cada cuadrado negro (baja este numero para achicarlo)
-#define MC_TAB_BORDER_PAD 2 // grosor del borde gris a cada lado del cuadrado
-#define MC_TAB_SLOT_GAP 6 // espacio horizontal entre cuadrados de la fila
-#define MC_TAB_CHECK_SIZE 10 // tamano del checkmark (zm_hud_icon_sq_scafold) en la esquina inf. der.
-#define MC_TAB_LOCK_SIZE 10 // tamano de la cruz roja (zm_hud_icon_fan) cuando el buildable esta bloqueado por su par (horca/guillotina)
+#define MC_TAB_SQUARE_X 91  // horizontal position (from top-left corner, 640 scale)
+#define MC_TAB_SQUARE_Y 97 // base vertical position: no parts, or buildable already constructed
+#define MC_TAB_SQUARE_Y_ACTIVE 87 // vertical position when that slot has >=1 part and is not yet constructed
+#define MC_TAB_SQUARE_SIZE 29 // width/height of each black square (lower this number to make it smaller)
+#define MC_TAB_BORDER_PAD 2 // thickness of the gray border on each side of the square
+#define MC_TAB_SLOT_GAP 6 // horizontal spacing between squares in the row
+#define MC_TAB_CHECK_SIZE 10 // size of the checkmark (zm_hud_icon_sq_scafold) in the bottom-right corner #define
+#define MC_TAB_LOCK_SIZE 10 // size of the red cross (zm_hud_icon_fan) when the buildable is blocked by its counterpart (gallows/guillotine)
 
 #define MC_NAVCARD_X 634 // horizontal position of the navcard square (tip opposite the row)
 #define MC_NAVCARD_Y 97 // vertical position of the navcard square
 
-#define MC_KEY_COOLDOWN_MS 15000 // ms de espera por jugador entre usos de la Llave del Elevador
-#define MC_KEY_INSERT_TIME 500 // ms que tarda en insertarse la Llave del Elevador (mantener [usar])
+#define MC_KEY_COOLDOWN_MS 15000 // wait time in ms per player between Elevator Key uses
+#define MC_KEY_INSERT_TIME 500 // time in ms to insert the Elevator Key (hold [use])
 
 init()
 {
@@ -146,13 +146,13 @@ mc_display_name( name )
         case "jetgun_zm":
             return "Jet Gun";
         case "turbine":
-            return "Turbina";
+            return "Turbine";
         case "turret":
             return "Torreta";
         case "electric_trap":
             return "Trampa Electrica";
         case "powerswitch":
-            return "Interruptor de Energia";
+            return "Palanca de Energia";
         case "pap":
             return "Potenciadora";
         case "sq_common":
@@ -160,26 +160,26 @@ mc_display_name( name )
         case "springpad_zm":
             return "Trampolin de Aire";
         case "slipgun_zm":
-            return "Esiquificador";
+            return "Esliquificador";
         case "headchopper_zm":
             return "Corta Cabezas";
         case "subwoofer_zm":
         case "subwoofer":
             return "Resonador";
         case "buried_sq_bt_m_tower":
-            return "Horcas";
+            return "Horca";
         case "buried_sq_bt_r_tower":
-            return "Guillotinas";
+            return "Guillotina";
         case "cattlecatcher":
             return "Parachoques";
         case "bushatch":
             return "Escotilla del Bus";
         case "dinerhatch":
-            return "Escotilla de Cafeteria";
+            return "Escotilla del Diner";
         case "busladder":
             return "Escalera del Bus";
         case "ekeys_zm":
-            return "Llave del Elevador";
+            return "Llave de Elevador";
     }
 
     return name;
@@ -588,7 +588,7 @@ mc_key_prompt_logic( player )
 
     if ( remaining > 0 )
     {
-        self.hint_string = "Llave Recuperandose...";
+        self.hint_string = "Llave en Espera...";
         self.cursor_hint = "HINT_NOICON";
         return false;
     }
