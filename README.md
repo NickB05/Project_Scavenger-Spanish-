@@ -1,4 +1,4 @@
-# 🛠️ Proyecto Scavenger | ACTUALIZACION DE LLAVES DE ELEVADOR+ EXPANSION DE LEADERBOARD v1.7!
+# 🛠️ Proyecto Scavenger | ARREGLOS DE LLAVES DE ELEVADOR v1.8
 
 Incorpora el **sistema moderno de objetos construibles de Zombies** a la experiencia clásica de Black Ops II en **Plutonium**.
 
