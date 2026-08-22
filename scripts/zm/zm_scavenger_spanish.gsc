@@ -1,6 +1,6 @@
 /*
 "Proyecto Scavenger" - TranZit / Die Rise / Buried
-v1.7
+v1.8
 
 Creado por: NickB_05
 
@@ -27,6 +27,7 @@ Correcciones de la v1.2 realizadas por: NickB_05
 Correcciones v1.3 y v1.4 para multijugador realizadas por: NickB_05
 Actualizacion v1.5, y v1.6 del Leaderboard realizadas por: NickB_05
 Actualizacion v1.7 de la Llave del Elevador realizada por: NickB_05
+Correcciones v1.8 de la Llave del Elevador realizada por: NickB_05
 */
 
 #include maps\mp\zombies\_zm_buildables;
@@ -76,6 +77,12 @@ init()
         }
     }
 
+    func = getfunction( "maps/mp/zombies/_zm_buildables", "player_can_take_piece" );
+    if ( isdefined( func ) )
+    {
+        replacefunc( func, ::mc_player_can_take_piece );
+    }
+
     level.mc_is_buried = ( map == "zm_buried" );
     level.mc_elevator_is_on_floor_func = undefined;
     level.mc_elevator_level_for_floor_func = undefined;
@@ -119,11 +126,24 @@ init()
     {
         level.mc_key_buildables["ekeys_zm"] = 1;
         level.mc_immediate_buildables["ekeys_zm"] = 1;
+        level.mc_key_buildables["keys_zm"] = 1;
+        level.mc_immediate_buildables["keys_zm"] = 1;
     }
 
     level thread on_player_connect();
     level thread mc_debug_print_names();
     level thread mc_setup_custom_prompts();
+}
+
+mc_player_can_take_piece( piece )
+{
+    if ( !isdefined( piece ) )
+        return false;
+
+    if ( mc_is_key( piece.buildablename ) && isdefined( self.mc_has_key ) && self.mc_has_key )
+        return false;
+
+    return true;
 }
 
 mc_debug_print_names()
@@ -186,8 +206,6 @@ mc_display_name( name )
             return "Escotilla de Cafeteria";
         case "busladder":
             return "Escalera del Bus";
-        case "ekeys_zm":
-            return "Llave del Elevador";
     }
 
     return name;
@@ -235,6 +253,7 @@ mc_representative_icon( name )
         case "busladder":
             return "zm_hud_icon_ladder";
         case "ekeys_zm":
+        case "keys_zm":
             return "zom_hud_icon_epod_key";
     }
 
@@ -360,6 +379,42 @@ mc_is_key( name )
     return isdefined( level.mc_key_buildables[name] );
 }
 
+mc_fix_key_buildable_slot()
+{
+    key_slot = 1;
+
+    if ( isdefined( level.zombie_include_buildables ) )
+    {
+        if ( isdefined( level.zombie_include_buildables["keys_zm"] ) )
+            level.zombie_include_buildables["keys_zm"].buildable_slot = key_slot;
+
+        if ( isdefined( level.zombie_include_buildables["ekeys_zm"] ) )
+            level.zombie_include_buildables["ekeys_zm"].buildable_slot = key_slot;
+    }
+
+    foreach ( stub in level.buildable_stubs )
+    {
+        if ( !isdefined( stub.buildablezone ) || !mc_is_key( stub.buildablezone.buildable_name ) )
+            continue;
+
+        stub.buildablezone.buildable_slot = key_slot;
+
+        if ( !isdefined( stub.buildablezone.pieces ) )
+            continue;
+
+        for ( i = 0; i < stub.buildablezone.pieces.size; i++ )
+        {
+            if ( isdefined( stub.buildablezone.pieces[i] ) )
+                stub.buildablezone.pieces[i].buildable_slot = key_slot;
+        }
+    }
+}
+
+mc_key_target_is_elevator( name )
+{
+    return name == "ekeys_zm";
+}
+
 mc_is_buried_fixed( name )
 {
     return name == "buried_sq_bt_m_tower" || name == "buried_sq_bt_r_tower";
@@ -461,7 +516,6 @@ mc_setup_custom_prompts()
     }
 
     level.mc_key_stubs = [];
-    level.mc_key_piece_key = undefined;
 
     foreach ( stub in ours_stubs )
     {
@@ -469,10 +523,9 @@ mc_setup_custom_prompts()
             continue;
 
         level.mc_key_stubs[level.mc_key_stubs.size] = stub;
-
-        if ( !isdefined( level.mc_key_piece_key ) && isdefined( stub.buildablezone.pieces ) && stub.buildablezone.pieces.size > 0 )
-            level.mc_key_piece_key = mc_piece_key( stub.buildablezone.pieces[0] );
     }
+
+    mc_fix_key_buildable_slot();
 
     level.mc_piece_candidates = [];
 
@@ -586,11 +639,14 @@ mc_key_prompt_logic( player )
     if ( !isdefined( player.mc_has_key ) || !player.mc_has_key )
         return true;
 
-    if ( !mc_key_resolve_elevator( self ) )
-        return true;
+    if ( isdefined( self.buildablezone ) && mc_key_target_is_elevator( self.buildablezone.buildable_name ) )
+    {
+        if ( !mc_key_resolve_elevator( self ) )
+            return true;
 
-    if ( isdefined( level.mc_elevator_is_on_floor_func ) && self.elevator [[ level.mc_elevator_is_on_floor_func ]]( self.floor ) )
-        return true;
+        if ( isdefined( level.mc_elevator_is_on_floor_func ) && self.elevator [[ level.mc_elevator_is_on_floor_func ]]( self.floor ) )
+            return true;
+    }
 
     remaining = player mc_key_cooldown_remaining();
 
@@ -1004,9 +1060,17 @@ mc_update_tab_slot_hud( name, slot_x, border, icon )
                 built_count++;
         }
 
-        deliverable = self mc_get_deliverable_pieces( zone );
-        have = built_count + deliverable.size;
-        total = zone.pieces.size;
+        if ( mc_is_key( name ) )
+        {
+            have = ( isdefined( self.mc_has_key ) && self.mc_has_key ) ? 1 : 0;
+            total = 1;
+        }
+        else
+        {
+            deliverable = self mc_get_deliverable_pieces( zone );
+            have = built_count + deliverable.size;
+            total = zone.pieces.size;
+        }
 
         is_immediate_style = isdefined( level.mc_immediate_buildables[name] );
 
@@ -1296,11 +1360,14 @@ mc_try_use_key()
         if ( !isdefined( stub_origin ) || !mc_in_range( self.origin, stub_origin, mc_build_radius_sq( zone.buildable_name ) ) )
             continue;
 
-        if ( !mc_key_resolve_elevator( stub ) )
-            continue;
+        if ( mc_key_target_is_elevator( zone.buildable_name ) )
+        {
+            if ( !mc_key_resolve_elevator( stub ) )
+                continue;
 
-        if ( isdefined( level.mc_elevator_is_on_floor_func ) && stub.elevator [[ level.mc_elevator_is_on_floor_func ]]( stub.floor ) )
-            continue;
+            if ( isdefined( level.mc_elevator_is_on_floor_func ) && stub.elevator [[ level.mc_elevator_is_on_floor_func ]]( stub.floor ) )
+                continue;
+        }
 
         self thread mc_key_insert_sequence( stub );
         return;
@@ -1369,13 +1436,26 @@ mc_key_insert_sequence( stub )
     if ( !success || !isdefined( self ) )
         return;
 
-    if ( isdefined( level.mc_elevator_is_on_floor_func ) && stub.elevator [[ level.mc_elevator_is_on_floor_func ]]( stub.floor ) )
+    if ( isdefined( stub.elevator ) && isdefined( level.mc_elevator_is_on_floor_func ) && stub.elevator [[ level.mc_elevator_is_on_floor_func ]]( stub.floor ) )
         return;
 
     if ( isdefined( level.flag ) && isdefined( level.flag["power_on"] ) && level.flag["power_on"] )
     {
         if ( isdefined( stub.buildablestruct ) && isdefined( stub.buildablestruct.onuseplantobject ) )
+        {
+            held_pieces = self player_get_buildable_pieces();
+
+            foreach ( held in held_pieces )
+            {
+                if ( !isdefined( held ) || !mc_is_key( held.buildablename ) )
+                    continue;
+
+                self player_set_buildable_piece( held, stub.buildablezone.buildable_slot );
+                break;
+            }
+
             stub [[ stub.buildablestruct.onuseplantobject ]]( self );
+        }
     }
 
     self.mc_key_cooldown_end = gettime() + MC_KEY_COOLDOWN_MS;
@@ -1392,6 +1472,9 @@ mc_try_collect()
     foreach ( held in held_pieces )
     {
         if ( !isdefined( held ) )
+            continue;
+
+        if ( isdefined( held.mc_collected ) && held.mc_collected )
             continue;
 
         candidates = [];
@@ -1435,9 +1518,6 @@ mc_try_collect()
 
         key = held_key;
 
-        if ( mc_is_key( candidates[0].buildablezone.buildable_name ) && isdefined( self.mc_has_key ) && self.mc_has_key )
-            continue;
-
         count = 0;
 
         if ( isdefined( level.mc_have[key] ) )
@@ -1459,26 +1539,29 @@ mc_try_collect()
             }
         }
 
-        names = mc_display_name( candidates[0].buildablezone.buildable_name );
-
-        for ( i = 1; i < candidates.size; i++ )
-            names = names + " / " + mc_display_name( candidates[i].buildablezone.buildable_name );
-
         if ( level.mc_debug )
             println( "[mc_debug] piece " + held.buildablename + "/" + held.modelname + " -> candidates=" + candidates.size + " (available for everyone, no random values)" );
-
-        progress_text = self mc_progress_text( nearest.buildablezone );
 
         if ( mc_is_key( nearest.buildablezone.buildable_name ) )
         {
             self.mc_has_key = true;
 
             self mc_show_key_pickup_notify( mc_representative_icon( nearest.buildablezone.buildable_name ) );
+
+            self clear_buildable_clientfield( nearest.buildablezone.buildable_slot );
+
+            held.mc_collected = true;
+            continue;
         }
-        else
-        {
-            self mc_show_piece_notify( names, mc_representative_icon( nearest.buildablezone.buildable_name ), progress_text );
-        }
+
+        names = mc_display_name( candidates[0].buildablezone.buildable_name );
+
+        for ( i = 1; i < candidates.size; i++ )
+            names = names + " / " + mc_display_name( candidates[i].buildablezone.buildable_name );
+
+        progress_text = self mc_progress_text( nearest.buildablezone );
+
+        self mc_show_piece_notify( names, mc_representative_icon( nearest.buildablezone.buildable_name ), progress_text );
 
         self player_destroy_piece( held );
     }
@@ -1746,8 +1829,6 @@ mc_try_deliver_buried()
 
     near_bench_stub.bound_to_buildable = near_bench_stub;
     active_stub = near_bench_stub;
-
-    target_b_name = active_stub.buildablezone.buildable_name;
 
     success = self mc_do_build_hold( active_stub, active_stub.buildablezone );
 
