@@ -1,6 +1,6 @@
 /*
 "Proyecto Scavenger" - TranZit / Die Rise / Buried
-v1.8
+v1.9
 
 Creado por: NickB_05
 
@@ -14,9 +14,8 @@ Creado por: NickB_05
  ya que sigo aprendiendo a implementar la interfaz, pero al menos el
  concepto es 100% fiel al original.
 
- Las únicas piezas que no se pueden llevar todas a la vez son la llave del ascensor,
- la llave de la prisión, el licor, los caramelos y las tizas de armas; esto es
- principalmente para mantener las mecánicas y... porque tengo algunas ideas
+ Las únicas piezas que no se pueden llevar todas a la vez son el licor, los caramelos y las tizas de armas; 
+ esto es principalmente para mantener las mecánicas y... porque tengo algunas ideas
  para la llave del ascensor... ¡disfruta del script!
 
  AVISO: Si vas a utilizar este script para otro proyecto, por favor
@@ -28,6 +27,7 @@ Correcciones v1.3 y v1.4 para multijugador realizadas por: NickB_05
 Actualizacion v1.5, y v1.6 del Leaderboard realizadas por: NickB_05
 Actualizacion v1.7 de la Llave del Elevador realizada por: NickB_05
 Correcciones v1.8 de la Llave del Elevador realizada por: NickB_05
+Correcciones v1.9 realizada por: NickB_05
 */
 
 #include maps\mp\zombies\_zm_buildables;
@@ -549,6 +549,13 @@ mc_setup_custom_prompts()
 
 mc_buried_find_ready_target()
 {
+    now = gettime();
+
+    if ( isdefined( self.mc_buried_ready_cache_tick ) && self.mc_buried_ready_cache_tick == now )
+        return self.mc_buried_ready_cache;
+
+    result = undefined;
+
     foreach ( stub in level.buildable_stubs )
     {
         if ( !isdefined( stub.buildablezone ) || !mc_is_ours( stub.buildablezone.buildable_name ) )
@@ -573,10 +580,16 @@ mc_buried_find_ready_target()
             can_attempt = deliverable.size > 0;
 
         if ( can_attempt )
-            return stub;
+        {
+            result = stub;
+            break;
+        }
     }
 
-    return undefined;
+    self.mc_buried_ready_cache_tick = now;
+    self.mc_buried_ready_cache = result;
+
+    return result;
 }
 
 mc_custom_prompt( player )
@@ -1010,7 +1023,7 @@ mc_tab_up_listener()
 
 mc_find_stub_by_buildable_name( name )
 {
-    if ( !level.mc_is_buried && isdefined( level.mc_stub_by_name ) && isdefined( level.mc_stub_by_name[name] ) )
+    if ( isdefined( level.mc_stub_by_name ) && isdefined( level.mc_stub_by_name[name] ) )
         return level.mc_stub_by_name[name];
 
     foreach ( stub in level.buildable_stubs )
@@ -1052,14 +1065,6 @@ mc_update_tab_slot_hud( name, slot_x, border, icon )
                 is_built = true;
         }
 
-        built_count = 0;
-
-        for ( i = 0; i < zone.pieces.size; i++ )
-        {
-            if ( isdefined( zone.pieces[i].built ) && zone.pieces[i].built )
-                built_count++;
-        }
-
         if ( mc_is_key( name ) )
         {
             have = ( isdefined( self.mc_has_key ) && self.mc_has_key ) ? 1 : 0;
@@ -1067,6 +1072,14 @@ mc_update_tab_slot_hud( name, slot_x, border, icon )
         }
         else
         {
+            built_count = 0;
+
+            for ( i = 0; i < zone.pieces.size; i++ )
+            {
+                if ( isdefined( zone.pieces[i].built ) && zone.pieces[i].built )
+                    built_count++;
+            }
+
             deliverable = self mc_get_deliverable_pieces( zone );
             have = built_count + deliverable.size;
             total = zone.pieces.size;
@@ -1710,6 +1723,14 @@ mc_swap_buildable_fields( stub1, stub2 )
         stub1.model.origin = tmo;
         stub1.model.angles = tma;
     }
+    if ( isdefined( level.mc_stub_by_name ) )
+    {
+        if ( isdefined( stub1.buildablezone ) )
+            level.mc_stub_by_name[stub1.buildablezone.buildable_name] = stub1;
+
+        if ( isdefined( stub2.buildablezone ) )
+            level.mc_stub_by_name[stub2.buildablezone.buildable_name] = stub2;
+    }
 }
 
 mc_try_deliver_buried()
@@ -1851,31 +1872,35 @@ custom_pooledbuildable_stub_for_piece( piece )
     if ( !isdefined( self.stubs ) )
         return undefined;
 
+    bound_match = undefined;
+    unbuilt_match = undefined;
+    any_match = undefined;
+
     foreach ( stub in level.buildable_stubs )
     {
-        if ( isdefined( stub.buildablezone ) && stub.buildablezone buildable_has_piece( piece ) )
+        if ( !isdefined( stub.buildablezone ) || !( stub.buildablezone buildable_has_piece( piece ) ) )
+            continue;
+
+        if ( !isdefined( any_match ) )
+            any_match = stub;
+
+        if ( !isdefined( unbuilt_match ) && !( isdefined( stub.built ) && stub.built ) )
+            unbuilt_match = stub;
+
+        if ( !isdefined( bound_match ) && isdefined( stub.bound_to_buildable ) && stub.bound_to_buildable == stub )
         {
-            if ( isdefined( stub.bound_to_buildable ) && stub.bound_to_buildable == stub )
-                return stub;
+            bound_match = stub;
+            break;
         }
     }
 
-    foreach ( stub in level.buildable_stubs )
-    {
-        if ( isdefined( stub.buildablezone ) && stub.buildablezone buildable_has_piece( piece ) )
-        {
-            if ( !( isdefined( stub.built ) && stub.built ) )
-                return stub;
-        }
-    }
+    if ( isdefined( bound_match ) )
+        return bound_match;
 
-    foreach ( stub in level.buildable_stubs )
-    {
-        if ( isdefined( stub.buildablezone ) && stub.buildablezone buildable_has_piece( piece ) )
-            return stub;
-    }
+    if ( isdefined( unbuilt_match ) )
+        return unbuilt_match;
 
-    return undefined;
+    return any_match;
 }
 
 mc_deliver_pieces( zone, pieces )
